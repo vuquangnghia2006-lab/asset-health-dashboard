@@ -1,0 +1,41 @@
+# Build output
+target/
+node_modules/
+dist/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temp / misc
+*.tmp
+*.bak
+*.zip
+source-code.zip
+cloudflared.exe
+cf_*.txt
+lt_*.txt
+lt_*.js
+tunnel_*.txt
+tunnel_*.js
+run_cf.bat
+start_cf.bat
+start_cf.js
+start_cf.vbs
+start_tunnel.bat
+db_connect.js
+package.json
+package-lock.json
+
+# Other projects
+EmployeeManagement/
+backend/
+frontend/

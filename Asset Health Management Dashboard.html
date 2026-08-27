@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asset Health Management – Dashboard Prototype</title>
+<style>
+:root{
+  --bg:#f4f7fa; --card:#ffffff; --line:#dfe6ec; --text:#1f2937; --muted:#6b7280;
+  --blue:#168aad; --blue-dark:#0e7490; --blue-soft:#e8f6fa; --green:#29a36a;
+  --amber:#e49b2f; --red:#d95763; --purple:#7776b8; --shadow:0 1px 3px rgba(25,38,52,.07);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif}
+button,select,input{font:inherit}
+.topbar{
+  height:58px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;
+  justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:20
+}
+.brand{display:flex;align-items:center;gap:11px}
+.logo{width:33px;height:33px;border-radius:8px;background:linear-gradient(135deg,#168aad,#42b8cc);
+  display:grid;place-items:center;color:#fff;font-weight:800}
+.brand-title{font-size:18px;font-weight:750}
+.brand-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.top-actions{display:flex;gap:8px}
+.btn{border:1px solid var(--blue);background:var(--blue);color:#fff;padding:8px 13px;border-radius:7px;
+  font-size:12px;font-weight:700;cursor:pointer}
+.btn.secondary{background:#fff;color:var(--blue)}
+.shell{display:grid;grid-template-columns:230px 1fr;min-height:calc(100vh - 58px)}
+.sidebar{background:#fff;border-right:1px solid var(--line);padding:14px 10px;position:sticky;top:58px;height:calc(100vh - 58px)}
+.nav-label{font-size:10px;font-weight:800;color:#98a2ad;text-transform:uppercase;letter-spacing:.08em;padding:8px 10px}
+.nav-item{width:100%;border:0;background:transparent;color:#4b5563;text-align:left;padding:10px 12px;border-radius:7px;
+  cursor:pointer;font-size:13px;margin-bottom:4px;display:flex;align-items:center;gap:9px}
+.nav-item.active{background:var(--blue-soft);color:var(--blue-dark);font-weight:750}
+.nav-icon{width:21px;text-align:center}
+.main{padding:16px;min-width:0}
+.page{display:none}.page.active{display:block}
+.page-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:13px}
+.page-title{font-size:21px;font-weight:760;margin:0}
+.page-desc{font-size:12px;color:var(--muted);margin-top:4px}
+.filterbar{
+  display:grid;grid-template-columns:repeat(6,minmax(130px,1fr)) auto;gap:9px;background:#fff;
+  border:1px solid var(--line);border-radius:9px;padding:12px;margin-bottom:13px;box-shadow:var(--shadow)
+}
+label{display:block;font-size:10px;font-weight:750;color:#596675;margin-bottom:5px}
+select,input[type=number],input[type=text]{
+  width:100%;height:36px;border:1px solid var(--line);border-radius:6px;background:#fff;padding:0 9px;color:#25313c
+}
+.filter-actions{display:flex;align-items:end;gap:7px}
+.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:11px;margin-bottom:13px}
+.cards.six{grid-template-columns:repeat(6,1fr)}
+.card{background:#fff;border:1px solid var(--line);border-radius:9px;padding:14px;box-shadow:var(--shadow);min-width:0}
+.asset-tabs{display:flex;gap:7px;flex-wrap:wrap;margin:2px 0 12px}
+.asset-tab{border:1px solid var(--line);background:#fff;color:#53606c;padding:7px 11px;border-radius:7px;
+  font-size:11px;font-weight:700;cursor:pointer}
+.asset-tab:hover{border-color:#8fc6d4;color:var(--blue-dark)}
+.asset-tab.active{background:var(--blue-soft);border-color:#8fc6d4;color:var(--blue-dark)}
+.table-note{font-size:10px;color:var(--muted);margin:-5px 0 10px}
+
+.kpi-label{font-size:11px;color:var(--muted);font-weight:650}
+.kpi{font-size:27px;font-weight:780;margin-top:7px;white-space:nowrap}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.35}
+.good{color:var(--green)}.warn-text{color:var(--amber)}.bad-text{color:var(--red)}
+.grid2{display:grid;grid-template-columns:1.2fr .8fr;gap:11px;margin-bottom:13px}
+.grid-equal{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:13px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-bottom:13px}
+.card h3{font-size:14px;margin:0 0 11px}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.small-link{font-size:11px;color:var(--blue);cursor:pointer}
+.bar-chart{height:235px;border-top:1px solid #eef2f5;padding:18px 14px 26px;display:flex;align-items:flex-end;gap:14px}
+.bar-col{flex:1;text-align:center;min-width:0}
+.bar-value{font-size:10px;margin-bottom:4px;color:#4c5864}
+.bar{background:linear-gradient(#2ba9c7,#168aad);border-radius:4px 4px 0 0;min-height:4px}
+.bar.alt{background:linear-gradient(#76c59d,#33a66d)}
+.bar.amber{background:linear-gradient(#f0b457,#df9223)}
+.x{font-size:10px;color:#68737e;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.donut-layout{display:flex;align-items:center;gap:25px;padding:18px}
+.donut{width:155px;height:155px;border-radius:50%;position:relative;flex:0 0 auto}
+.donut:after{content:"";position:absolute;inset:29px;background:#fff;border-radius:50%}
+.legend{font-size:11px;line-height:2}
+.dot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px}
+.compat{background:#fff;border:1px solid var(--line);border-radius:9px;box-shadow:var(--shadow);margin-bottom:13px}
+.compat-head{padding:14px 15px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.compat-head h3{margin:0;font-size:14px}
+.compat-body{padding:13px 15px}
+.criteria{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:11px}
+.criterion{border:1px solid #dce9ee;background:#f9fdfe;border-radius:7px;padding:10px;min-height:69px}
+.criterion strong{font-size:12px}
+.criterion p{margin:5px 0 0;color:#6d7883;font-size:10px;line-height:1.35}
+.compat-controls{display:grid;grid-template-columns:175px 1fr auto;gap:15px;align-items:end;background:#f6f8fa;border-radius:7px;padding:10px}
+.checks{display:flex;gap:16px;align-items:center;height:36px;flex-wrap:wrap}
+.checks label{display:inline-flex;align-items:center;gap:6px;margin:0;font-weight:500}
+input[type=checkbox]{width:14px;height:14px;accent-color:var(--blue)}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th,td{padding:9px 10px;border-bottom:1px solid #e8edf2;text-align:left}
+th{background:#f6f8fa;color:#5d6874;font-size:10px;white-space:nowrap}
+.pill{display:inline-block;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:750}
+.pill.green{background:#ddf4e8;color:#238258}.pill.amber{background:#fff0cf;color:#98630b}
+.pill.red{background:#fce1e6;color:#af3043}.pill.blue{background:#dff2f8;color:#17728b}
+.stack{height:18px;border-radius:4px;overflow:hidden;display:flex;background:#edf1f4}
+.seg{height:100%}
+.heat{display:grid;grid-template-columns:125px repeat(4,1fr);font-size:10px}
+.heat div{padding:9px;border-right:1px solid #fff;border-bottom:1px solid #fff}
+.h-head{background:#eef2f5;font-weight:750}.h-name{background:#f7f9fb;font-weight:650}
+.h-good{background:#d9f2e5}.h-mid{background:#fff0c9}.h-bad{background:#fbdde2}
+.phase-grid{display:grid;grid-template-columns:165px repeat(3,1fr) 105px;font-size:11px}
+.phase-grid div{padding:9px;border-bottom:1px solid #e7edf1}
+.phase-head{background:#f6f8fa;font-weight:750}
+.phase-a{background:#e7f4fa}.phase-b{background:#eef4df}.phase-c{background:#fff1dc}
+.progress{height:8px;background:#e9eef2;border-radius:99px;overflow:hidden;margin-top:7px}
+.progress span{display:block;height:100%;background:var(--blue)}
+.list-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #e9edf1;font-size:11px}
+.list-row:last-child{border-bottom:0}
+.config-card{border:1px solid var(--line);border-radius:8px;padding:12px;background:#fbfcfd}
+.config-title{display:flex;justify-content:space-between;font-size:12px;font-weight:750}
+.device-row{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap}
+.device{font-size:10px;padding:5px 7px;border-radius:5px;background:#e2f3f8;color:#196f87}
+.device.missing{background:#fbe2e6;color:#ae3548}
+.footer-note{font-size:10px;color:#89939d;text-align:right;margin-top:7px}
+@media(max-width:1200px){
+ .shell{grid-template-columns:190px 1fr}.filterbar{grid-template-columns:repeat(3,1fr)}
+ .cards,.cards.six{grid-template-columns:repeat(3,1fr)}.criteria{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">AH</div>
+    <div><div class="brand-title">Asset Health Management</div><div class="brand-sub">Interactive dashboard prototype</div></div>
+  </div>
+  <div class="top-actions">
+    <button class="btn secondary" onclick="window.print()">Export</button>
+    <button class="btn">Edit dashboard</button>
+  </div>
+</header>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="nav-label">Dashboards</div>
+    <button class="nav-item active" data-page="transformer"><span class="nav-icon">&#9635;</span>Transformer Fleet</button>
+    <button class="nav-item" data-page="quality"><span class="nav-icon">&#9711;</span>Asset Data Quality</button>
+    <button class="nav-item" data-page="plant"><span class="nav-icon">&#9889;</span>Power Plant Assets</button>
+    <div class="nav-label" style="margin-top:14px">Saved views</div>
+    <button class="nav-item"><span class="nav-icon">&#9675;</span>110 kV transformers</button>
+    <button class="nav-item"><span class="nav-icon">&#9675;</span>Missing nameplates</button>
+    <button class="nav-item"><span class="nav-icon">&#9675;</span>Phase imbalance</button>
+  </aside>
+
+  <main class="main">
+
+    <!-- TRANSFORMER FLEET -->
+    <section class="page active" id="transformer">
+      <div class="page-head">
+        <div><h1 class="page-title">Transformer Fleet</h1><div class="page-desc">Inventory, capacity, manufacturer profile and parallel-operation screening</div></div>
+      </div>
+
+      <div class="filterbar">
+        <div><label>Organisation</label><select><option>All organisations</option><option>PTC1</option><option>PTC2</option><option>EVNNPC</option></select></div>
+        <div><label>Region / Province</label><select><option>All locations</option><option>H&#224; N&#7897;i</option><option>Ngh&#7879; An</option><option>Th&#225;i B&#236;nh</option></select></div>
+        <div><label>Site</label><select><option>All sites</option><option>110 kV B&#7855;c Ninh</option><option>220 kV Ngh&#7879; An</option><option>500 kV Hi&#7879;p H&#242;a</option></select></div>
+        <div><label>Voltage level</label><select><option>All voltage levels</option><option>500 kV</option><option>220 kV</option><option>110 kV</option><option>35 kV</option><option>22 kV</option></select></div>
+        <div><label>Manufacturer</label><select><option>All manufacturers</option><option>EEMC</option><option>ABB</option><option>Siemens</option><option>Toshiba</option></select></div>
+        <div><label>Status</label><select><option>All statuses</option><option>In service</option><option>Out of service</option><option>Planned</option></select></div>
+        <div class="filter-actions"><button class="btn" onclick="randomiseTransformer()">Apply</button></div>
+      </div>
+
+      <div class="cards">
+        <div class="card"><div class="kpi-label">Total transformers</div><div class="kpi" id="t1">6,421</div><div class="kpi-sub">Across selected fleet</div></div>
+        <div class="card"><div class="kpi-label">Total rated capacity</div><div class="kpi" id="t2">2,041 MVA</div><div class="kpi-sub">Based on rated power</div></div>
+        <div class="card"><div class="kpi-label">Data completeness</div><div class="kpi good">90%</div><div class="kpi-sub">Fleet records meeting completeness target</div></div>
+        <div class="card"><div class="kpi-label">Nameplate &#8805;90%</div><div class="kpi">82.6%</div><div class="kpi-sub">High-completeness nameplate records</div></div>
+        <div class="card"><div class="kpi-label">Parallel-ready pairs</div><div class="kpi">184</div><div class="kpi-sub">Potential compatible transformer pairs</div></div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <div class="card-head"><h3>Transformer capacity by voltage level</h3><span class="small-link">MVA</span></div>
+          <div class="bar-chart">
+            <div class="bar-col"><div class="bar-value">610</div><div class="bar" style="height:142px"></div><div class="x">500 kV</div></div>
+            <div class="bar-col"><div class="bar-value">520</div><div class="bar" style="height:121px"></div><div class="x">220 kV</div></div>
+            <div class="bar-col"><div class="bar-value">490</div><div class="bar" style="height:114px"></div><div class="x">110 kV</div></div>
+            <div class="bar-col"><div class="bar-value">261</div><div class="bar" style="height:61px"></div><div class="x">35 kV</div></div>
+            <div class="bar-col"><div class="bar-value">160</div><div class="bar" style="height:37px"></div><div class="x">22 kV</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Fleet mix by manufacturer</h3>
+          <div class="donut-layout">
+            <div class="donut" style="background:conic-gradient(#168aad 0 42%,#58b68a 42% 67%,#f0a13b 67% 82%,#7d80bd 82% 92%,#d9e0e7 92%)"></div>
+            <div class="legend">
+              <div><span class="dot" style="background:#168aad"></span>EEMC &#8212; 42%</div>
+              <div><span class="dot" style="background:#58b68a"></span>ABB &#8212; 25%</div>
+              <div><span class="dot" style="background:#f0a13b"></span>Toshiba &#8212; 15%</div>
+              <div><span class="dot" style="background:#7d80bd"></span>Siemens &#8212; 10%</div>
+              <div><span class="dot" style="background:#d9e0e7"></span>Other &#8212; 8%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="compat">
+        <div class="compat-head">
+          <div><h3>Parallel operation compatibility</h3><div class="page-desc">Technical screening of transformer pairs</div></div>
+          <button class="btn" onclick="recalculateOriginal()">Recalculate</button>
+        </div>
+        <div class="compat-body">
+          <div class="criteria">
+            <div class="criterion"><strong>Transformation ratio</strong><p>Exact match or deviation within configured tolerance.</p></div>
+            <div class="criterion"><strong>Vector group</strong><p>Must be compatible in phase displacement.</p></div>
+            <div class="criterion"><strong>Impedance Uk%</strong><p>Relative deviation compared against technical threshold.</p></div>
+            <div class="criterion"><strong>Tap &amp; rated power</strong><p>Checks tap range and rated power ratio where data is available.</p></div>
+          </div>
+          <div class="compat-controls">
+            <div><label>Maximum Uk% difference</label><input type="number" id="oldUk" value="10" min="0" max="100"></div>
+            <div class="checks">
+              <label><input type="checkbox" checked>Same site only</label>
+              <label><input type="checkbox" checked>Require tap range overlap</label>
+              <label><input type="checkbox">Rated power ratio &#8804; 3:1</label>
+            </div>
+            <button class="btn" onclick="recalculateOriginal()">Recalculate</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Compatibility results</h3><span class="small-link">View asset list</span></div>
+        <table>
+          <thead><tr><th>Transformer A</th><th>Transformer B</th><th>Site</th><th>Ratio</th><th>Vector group</th><th>Tap range</th><th>Uk% difference</th><th>Result</th></tr></thead>
+          <tbody id="oldResults">
+            <tr><td>T1-110-BN</td><td>T2-110-BN</td><td>110 kV B&#7855;c Ninh</td><td>115/23 kV</td><td>YNd11</td><td>&#177;8 &#215; 1.25%</td><td data-diff="3.4">3.4%</td><td><span class="pill green">Compatible</span></td></tr>
+            <tr><td>T1-220-NA</td><td>T2-220-NA</td><td>220 kV Ngh&#7879; An</td><td>230/115/23 kV</td><td>YNyn0d11</td><td>&#177;10 &#215; 1.25%</td><td data-diff="8.7">8.7%</td><td><span class="pill amber">Review</span></td></tr>
+            <tr><td>T1-110-TB</td><td>T2-110-TB</td><td>110 kV Th&#225;i B&#236;nh</td><td>115/38.5/23 kV</td><td>YNyn0d11</td><td>Different range</td><td data-diff="12.1">12.1%</td><td><span class="pill red">Not compatible</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ASSET DATA QUALITY -->
+    <section class="page" id="quality">
+      <div class="page-head">
+        <div><h1 class="page-title">Asset Data Quality</h1><div class="page-desc">Completeness, key-field coverage and phase-balance consistency of asset master data</div></div>
+      </div>
+      <div class="filterbar">
+        <div><label>Organisation</label><select><option>All organisations</option></select></div>
+        <div><label>Region / Province</label><select><option>All locations</option></select></div>
+        <div>
+          <label>Asset class</label>
+          <select id="qualityAssetFilter" onchange="setQualityAsset(this.value)">
+            <option value="all">All assets</option>
+            <option value="transformer">Transformer</option>
+            <option value="circuit-breaker">Circuit Breaker</option>
+            <option value="ct">CT</option>
+            <option value="vt">VT</option>
+            <option value="disconnector">Disconnector</option>
+          </select>
+        </div>
+        <div><label>Voltage level</label><select><option>All voltage levels</option></select></div>
+        <div>
+          <label>Data category</label>
+          <select>
+            <option>All categories</option>
+            <option>Properties</option>
+            <option>Nameplate</option>
+            <option>Basic Specification</option>
+            <option>Ratings</option>
+            <option>Others</option>
+          </select>
+        </div>
+        <div><label>Quality status</label><select><option>All statuses</option><option>Complete</option><option>Incomplete</option><option>Invalid</option></select></div>
+        <div class="filter-actions"><button class="btn">Apply</button></div>
+      </div>
+
+      <div class="cards six">
+        <div class="card"><div class="kpi-label">Overall completeness</div><div class="kpi">78.4%</div><div class="kpi-sub">Weighted master-data score</div></div>
+        <div class="card"><div class="kpi-label">Assets with missing fields</div><div class="kpi bad-text">8,372</div><div class="kpi-sub">At least one key field missing</div></div>
+        <div class="card"><div class="kpi-label">Missing nameplates</div><div class="kpi warn-text">2,641</div><div class="kpi-sub">No nameplate image uploaded</div></div>
+        <div class="card"><div class="kpi-label">Phase-monitored assets</div><div class="kpi">9,864</div><div class="kpi-sub">Single-phase asset records</div></div>
+        <div class="card"><div class="kpi-label">Balanced groups</div><div class="kpi good">92.4%</div><div class="kpi-sub">Equal counts for phases A, B and C</div></div>
+        <div class="card"><div class="kpi-label">Phase mismatches</div><div class="kpi bad-text">137</div><div class="kpi-sub">Groups requiring data review</div></div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <h3>Completeness by data category</h3>
+          <div class="bar-chart">
+            <div class="bar-col"><div class="bar-value">88%</div><div class="bar alt" style="height:145px"></div><div class="x">Properties</div></div>
+            <div class="bar-col"><div class="bar-value">72%</div><div class="bar amber" style="height:119px"></div><div class="x">Nameplate</div></div>
+            <div class="bar-col"><div class="bar-value">69%</div><div class="bar amber" style="height:114px"></div><div class="x">Basic<br>Specification</div></div>
+            <div class="bar-col"><div class="bar-value">81%</div><div class="bar alt" style="height:134px"></div><div class="x">Ratings</div></div>
+            <div class="bar-col"><div class="bar-value">63%</div><div class="bar amber" style="height:104px"></div><div class="x">Others</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Quality status distribution</h3>
+          <div class="donut-layout">
+            <div class="donut" style="background:conic-gradient(#35a66f 0 61%,#e5a13a 61% 88%,#d85763 88%)"></div>
+            <div class="legend">
+              <div><span class="dot" style="background:#35a66f"></span>Complete &#8212; 61%</div>
+              <div><span class="dot" style="background:#e5a13a"></span>Incomplete &#8212; 27%</div>
+              <div><span class="dot" style="background:#d85763"></span>Invalid &#8212; 12%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:13px">
+        <div class="card-head"><h3>Asset count by phase</h3><span class="small-link">Open mismatched groups</span></div>
+        <div class="phase-grid">
+          <div class="phase-head">Asset class</div><div class="phase-head">Phase A</div><div class="phase-head">Phase B</div><div class="phase-head">Phase C</div><div class="phase-head">Status</div>
+          <div>Current Transformer</div><div class="phase-a">1,206</div><div class="phase-b">1,206</div><div class="phase-c">1,204</div><div><span class="pill amber">&#8722;2 C</span></div>
+          <div>Voltage Transformer</div><div class="phase-a">874</div><div class="phase-b">874</div><div class="phase-c">874</div><div><span class="pill green">Balanced</span></div>
+          <div>Surge Arrester</div><div class="phase-a">1,113</div><div class="phase-b">1,111</div><div class="phase-c">1,108</div><div><span class="pill red">Mismatch</span></div>
+          <div>Bushing</div><div class="phase-a">642</div><div class="phase-b">642</div><div class="phase-c">642</div><div><span class="pill green">Balanced</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Missing key fields</h3><span class="small-link">Open filtered assets</span></div>
+        <div class="asset-tabs" id="qualityAssetTabs">
+          <button class="asset-tab active" data-asset="all" onclick="setQualityAsset('all')">All assets</button>
+          <button class="asset-tab" data-asset="transformer" onclick="setQualityAsset('transformer')">Transformers</button>
+          <button class="asset-tab" data-asset="circuit-breaker" onclick="setQualityAsset('circuit-breaker')">Circuit Breaker</button>
+          <button class="asset-tab" data-asset="ct" onclick="setQualityAsset('ct')">CT</button>
+          <button class="asset-tab" data-asset="vt" onclick="setQualityAsset('vt')">VT</button>
+          <button class="asset-tab" data-asset="disconnector" onclick="setQualityAsset('disconnector')">Disconnector</button>
+        </div>
+        <div class="table-note">Each asset-type tab includes the common key fields plus its asset-specific key fields.</div>
+        <table>
+          <thead><tr><th>Field</th><th>Category</th><th>Missing count</th><th>Missing percent</th></tr></thead>
+          <tbody id="missingKeyFieldsBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- POWER PLANT -->
+    <section class="page" id="plant">
+      <div class="page-head">
+        <div><h1 class="page-title">Power Plant Assets</h1><div class="page-desc">Installed capacity, critical assets and fleet composition across generation plants</div></div>
+      </div>
+      <div class="filterbar">
+        <div><label>Organisation</label><select><option>All owners</option><option>EVNGENCO1</option><option>EVNGENCO2</option><option>PV Power</option></select></div>
+        <div><label>Plant type</label><select><option>All plant types</option><option>Hydropower</option><option>Thermal</option><option>Solar</option><option>Wind</option></select></div>
+        <div><label>Region / Province</label><select><option>All locations</option></select></div>
+        <div><label>Power plant</label><select><option>All plants</option></select></div>
+        <div><label>Unit</label><select><option>All units</option></select></div>
+        <div><label>Asset class</label><select><option>All asset classes</option></select></div>
+        <div class="filter-actions"><button class="btn">Apply</button></div>
+      </div>
+      <div class="cards">
+        <div class="card"><div class="kpi-label">Power plants</div><div class="kpi">42</div><div class="kpi-sub">Selected generation portfolio</div></div>
+        <div class="card"><div class="kpi-label">Installed capacity</div><div class="kpi">18.7 GW</div><div class="kpi-sub">Gross plant capacity</div></div>
+        <div class="card"><div class="kpi-label">Generating units</div><div class="kpi">116</div><div class="kpi-sub">Operational and planned units</div></div>
+        <div class="card"><div class="kpi-label">Critical assets</div><div class="kpi bad-text">238</div><div class="kpi-sub">Criticality A / high consequence</div></div>
+        <div class="card"><div class="kpi-label">Overdue tests</div><div class="kpi warn-text">91</div><div class="kpi-sub">Past inspection or testing due date</div></div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h3>Installed capacity by plant type</h3>
+          <div class="bar-chart">
+            <div class="bar-col"><div class="bar-value">7.3 GW</div><div class="bar" style="height:154px"></div><div class="x">Thermal</div></div>
+            <div class="bar-col"><div class="bar-value">6.5 GW</div><div class="bar" style="height:137px"></div><div class="x">Hydropower</div></div>
+            <div class="bar-col"><div class="bar-value">2.9 GW</div><div class="bar" style="height:61px"></div><div class="x">Solar</div></div>
+            <div class="bar-col"><div class="bar-value">2.0 GW</div><div class="bar" style="height:42px"></div><div class="x">Wind</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Asset health distribution</h3>
+          <div class="donut-layout">
+            <div class="donut" style="background:conic-gradient(#35a66f 0 66%,#e5a13a 66% 87%,#d85763 87% 96%,#8994a0 96%)"></div>
+            <div class="legend">
+              <div><span class="dot" style="background:#35a66f"></span>Good &#8212; 66%</div>
+              <div><span class="dot" style="background:#e5a13a"></span>Fair &#8212; 21%</div>
+              <div><span class="dot" style="background:#d85763"></span>Poor &#8212; 9%</div>
+              <div><span class="dot" style="background:#8994a0"></span>Unknown &#8212; 4%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="grid-equal">
+        <div class="card">
+          <h3>Critical assets by system</h3>
+          <div class="list-row"><span>Main transformer</span><strong>46</strong></div>
+          <div class="list-row"><span>Generator</span><strong>32</strong></div>
+          <div class="list-row"><span>Boiler / turbine</span><strong>64</strong></div>
+          <div class="list-row"><span>Switchyard</span><strong>51</strong></div>
+          <div class="list-row"><span>Auxiliary system</span><strong>45</strong></div>
+        </div>
+        <div class="card">
+          <h3>Plant master-data completeness</h3>
+          <div class="list-row"><span>Plant and unit hierarchy</span><strong>94%</strong></div>
+          <div class="progress"><span style="width:94%"></span></div>
+          <div class="list-row"><span>Main equipment nameplate</span><strong>82%</strong></div>
+          <div class="progress"><span style="width:82%"></span></div>
+          <div class="list-row"><span>Commissioning data</span><strong>69%</strong></div>
+          <div class="progress"><span style="width:69%"></span></div>
+          <div class="list-row"><span>Maintenance strategy</span><strong>61%</strong></div>
+          <div class="progress"><span style="width:61%"></span></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer-note">Static prototype with basic navigation, filters and compatibility recalculation.</div>
+  </main>
+</div>
+
+<script>
+document.querySelectorAll('.nav-item[data-page]').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('.nav-item[data-page]').forEach(function(x){x.classList.remove('active')});
+    document.querySelectorAll('.page').forEach(function(x){x.classList.remove('active')});
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.page).classList.add('active');
+  });
+});
+function randomiseTransformer(){
+  document.getElementById('t1').textContent=(6000+Math.floor(Math.random()*700)).toLocaleString('en-GB');
+  document.getElementById('t2').textContent=(1900+Math.floor(Math.random()*260)).toLocaleString('en-GB')+' MVA';
+}
+function recalculateOriginal(){
+  var limit=parseFloat(document.getElementById('oldUk').value||10);
+  document.querySelectorAll('#oldResults tr').forEach(function(row){
+    var diff=parseFloat(row.querySelector('[data-diff]').dataset.diff);
+    var cell=row.lastElementChild;
+    if(diff<=limit*.6) cell.innerHTML='<span class="pill green">Compatible</span>';
+    else if(diff<=limit) cell.innerHTML='<span class="pill amber">Review</span>';
+    else cell.innerHTML='<span class="pill red">Not compatible</span>';
+  });
+}
+
+var commonKeyFields = [
+  {field:'Serial No.', category:'Properties', count:'8,280', percent:'55.4%'},
+  {field:'Asset ID', category:'Properties', count:'1,164', percent:'7.8%'},
+  {field:'Operating date', category:'Properties', count:'3,220', percent:'21.5%'},
+  {field:'Nameplate', category:'Properties', count:'2,641', percent:'17.7%'}
+];
+
+var assetSpecificKeyFields = {
+  'all': [],
+  'transformer': [
+    {field:'Vector Group', category:'Basic Specs/Transformers', count:'1,124', percent:'17.5%'},
+    {field:'Voltage Ratio', category:'Basic Specs/Transformers', count:'986', percent:'15.4%'},
+    {field:'Rated Power', category:'Basic Specs/Transformers', count:'742', percent:'11.6%'},
+    {field:'Uk%', category:'Basic Specs/Transformers', count:'1,486', percent:'23.1%'},
+    {field:'Number of Taps', category:'Basic Specs/Transformers', count:'1,735', percent:'27.0%'},
+    {field:'Tap voltage', category:'Basic Specs/Transformers', count:'1,944', percent:'30.3%'}
+  ],
+  'circuit-breaker': [
+    {field:'Rated voltage L-L', category:'Basic Specs/Circuit Breaker', count:'612', percent:'14.8%'},
+    {field:'Rated current', category:'Basic Specs/Circuit Breaker', count:'488', percent:'11.8%'},
+    {field:'Rated short-circuit breaking current', category:'Basic Specs/Circuit Breaker', count:'975', percent:'23.6%'},
+    {field:'Interrupting duty cycle', category:'Basic Specs/Circuit Breaker', count:'1,428', percent:'34.5%'}
+  ],
+  'ct': [
+    {field:'Primary windings', category:'Basic Specs/CT', count:'1,264', percent:'19.7%'},
+    {field:'Standard', category:'Basic Specs/CT', count:'2,018', percent:'31.5%'},
+    {field:'Tap configuration', category:'Basic Specs/CT', count:'1,547', percent:'24.1%'}
+  ],
+  'vt': [
+    {field:'Standard', category:'Basic Specs/VT', count:'1,136', percent:'22.8%'},
+    {field:'Upr', category:'Basic Specs/VT', count:'1,874', percent:'37.6%'},
+    {field:'Windings configuration', category:'Basic Specs/VT', count:'982', percent:'19.7%'}
+  ],
+  'disconnector': [
+    {field:'Rated voltage', category:'Basic Specs/Disconnector', count:'746', percent:'12.9%'},
+    {field:'Rated current', category:'Basic Specs/Disconnector', count:'1,089', percent:'18.9%'}
+  ]
+};
+
+function setQualityAsset(assetType){
+  var validType = assetSpecificKeyFields.hasOwnProperty(assetType) ? assetType : 'all';
+  var select = document.getElementById('qualityAssetFilter');
+  if(select) select.value = validType;
+
+  document.querySelectorAll('#qualityAssetTabs .asset-tab').forEach(function(tab){
+    tab.classList.toggle('active', tab.dataset.asset === validType);
+  });
+
+  var rows = commonKeyFields.concat(assetSpecificKeyFields[validType]);
+  var body = document.getElementById('missingKeyFieldsBody');
+  if(!body) return;
+
+  body.innerHTML = rows.map(function(item){
+    return '<tr><td>'+item.field+'</td><td>'+item.category+'</td><td>'+item.count+'</td><td>'+item.percent+'</td></tr>';
+  }).join('');
+}
+
+setQualityAsset('all');
+</script>
+</body>
+</html>
