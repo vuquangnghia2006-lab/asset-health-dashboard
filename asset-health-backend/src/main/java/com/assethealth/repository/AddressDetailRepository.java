@@ -16,4 +16,10 @@ public interface AddressDetailRepository extends JpaRepository<AddressDetail, Lo
 
     @Query(value = "SELECT DISTINCT ward_commune FROM address_detail WHERE ward_commune IS NOT NULL AND TRIM(ward_commune) <> '' AND (:city IS NULL OR city = :city) ORDER BY ward_commune", nativeQuery = true)
     List<String> findDistinctWardsByCity(@Param("city") String city);
+
+    @Query(value = "SELECT DISTINCT ward_commune FROM address_detail WHERE ward_commune IS NOT NULL AND TRIM(ward_commune) <> '' ORDER BY ward_commune", nativeQuery = true)
+    List<String> findDistinctWards();
+
+    @Query(value = "SHOW server_encoding", nativeQuery = true)
+    String findDbEncoding();
 }

@@ -15,21 +15,22 @@ export default {
   getDataCompleteness(params) { return api.get('/transformers/data-completeness', { params }) },
   getCompatibilityResults(params) { return api.get('/transformers/compatibility', { params }) },
 
+  getOverviewSummary(params) { return api.get('/overview/summary', { params }) },
+  getOverviewCapacityByVoltage(params) { return api.get('/overview/capacity-by-voltage', { params }) },
+  getOverviewMixByOrganisation(params) { return api.get('/overview/mix-by-organisation', { params }) },
+  getOverviewTopManufacturers(params) { return api.get('/overview/top-manufacturers', { params }) },
+  getOverviewDataCompleteness(params) { return api.get('/overview/data-completeness', { params }) },
+
   getDataQualitySummary(params) { return api.get('/quality/summary', { params }) },
   getCompletenessByCategory(params) { return api.get('/quality/completeness-by-category', { params }) },
   getQualityStatusDistribution(params) { return api.get('/quality/status-distribution', { params }) },
   getAssetCountByPhase(params) { return api.get('/quality/asset-count-by-phase', { params }) },
   getMissingKeyFields(params) { return api.get('/quality/missing-key-fields', { params }) },
 
-  getPlantSummary(params) { return api.get('/plants/summary', { params }) },
-  getCapacityByPlantType(params) { return api.get('/plants/capacity-by-type', { params }) },
-  getAssetHealthDistribution(params) { return api.get('/plants/health-distribution', { params }) },
-  getCriticalAssetsBySystem(params) { return api.get('/plants/critical-assets', { params }) },
-  getPlantCompleteness(params) { return api.get('/plants/completeness', { params }) },
-
   getOrganisations() { return api.get('/organisations') },
   getOrganisationsWithData() { return api.get('/organisations/with-data') },
   getSubstations() { return api.get('/substations') },
+  getSubstationsWithTransformers(params) { return api.get('/substations/with-transformers', { params }) },
   getManufacturers() { return api.get('/manufacturers') },
   getCities() { return api.get('/cities') },
   getWards(city) { return api.get('/wards', { params: city ? { city } : {} }) },

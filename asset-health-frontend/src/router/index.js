@@ -1,13 +1,14 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import TransformerFleet from '../views/TransformerFleet.vue'
 import AssetDataQuality from '../views/AssetDataQuality.vue'
-import PowerPlantAssets from '../views/PowerPlantAssets.vue'
+import AssetCapacityOverview from '../views/AssetCapacityOverview.vue'
 
 const routes = [
-  { path: '/', redirect: '/transformer' },
+  { path: '/', redirect: '/overview' },
+  { path: '/overview', name: 'Asset & Capacity Overview', component: AssetCapacityOverview },
   { path: '/transformer', name: 'Transformer Fleet', component: TransformerFleet },
   { path: '/quality', name: 'Asset Data Quality', component: AssetDataQuality },
-  { path: '/plant', name: 'Power Plant Assets', component: PowerPlantAssets },
+  { path: '/:pathMatch(.*)*', redirect: '/overview' },
 ]
 
 export default createRouter({

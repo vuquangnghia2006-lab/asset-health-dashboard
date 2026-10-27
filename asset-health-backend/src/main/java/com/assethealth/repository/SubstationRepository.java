@@ -15,6 +15,20 @@ public interface SubstationRepository extends JpaRepository<Substation, Long> {
     long countActive();
 
     @Query(value = """
+        SELECT DISTINCT s.id, s.name, COALESCE(ad.city, '')
+        FROM substation s
+        JOIN voltage_level vl ON vl.owner_id = s.id AND vl.status = 2
+        JOIN bay b ON b.owner_id = vl.id AND b.owner_type = 'VOLTAGE_LEVEL' AND b.status = 2
+        JOIN asset_info ai ON ai.owner_id = b.id AND ai.status = 2
+        JOIN transformer t ON t.asset_info_id = ai.id AND t.status = 2
+        LEFT JOIN address_detail ad ON ad.id = s.address_detail_id
+        WHERE s.status = 2
+          AND (:organisationId IS NULL OR s.owner_id = :organisationId)
+        ORDER BY s.name
+        """, nativeQuery = true)
+    List<Object[]> findSubstationsWithTransformers(@Param("organisationId") Long organisationId);
+
+    @Query(value = """
         SELECT COALESCE(s.substation_type, 'Unknown') as stype, COUNT(DISTINCT s.id) as cnt
         FROM substation s
         WHERE s.status = 2

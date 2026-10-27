@@ -7,5 +7,6 @@ public record CompatibilityResult(
     String ratio,
     String vectorGroup,
     String tapRange,
-    double ukDiff
+    Double ukDiff,
+    String result
 ) {}

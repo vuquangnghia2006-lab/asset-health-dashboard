@@ -4,5 +4,8 @@ public record TransformerFleetSummary(
     long totalAssets,
     long totalSubstations,
     long totalTransformers,
-    double totalCapacityMVA
+    double totalCapacityMVA,
+    long nameplateCount,
+    double nameplatePct,
+    double averageFleetAge
 ) {}
